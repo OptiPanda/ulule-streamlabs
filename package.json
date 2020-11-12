@@ -1,0 +1,33 @@
+{
+  "name": "ulule-streamlabs",
+  "version": "1.0.0",
+  "description": "Get your Ulule contributions right into streamlabs",
+  "main": "app/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install-local": "npm install -g mocha & npm install -g node-inspector & npm install",
+    "start": "node app/app.js",
+    "debug": "node-debug app/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ekito/ulule-slack"
+  },  
+  "keywords": [
+    "ulule","streamlabs"
+  ],
+  "author": "Arthur Jamain",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.18.0",
+    "dotenv": "^6.1.0",
+    "express": "^4.16.4",
+    "sqlite3": "^4.0.4",    
+    "body-parser": "^1.15.1",
+    "request": "^2.72.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "supertest": "^1.2.0"
+  }
+}
