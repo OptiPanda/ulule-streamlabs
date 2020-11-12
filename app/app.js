@@ -4,6 +4,8 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var config = require('../confs/config');
 
+var access_token = '';
+
 const app = express()
 const sqlite3 = require('sqlite3').verbose()
 const db = new sqlite3.Database('./datas/db.sqlite')
@@ -25,9 +27,7 @@ app.get('/', (req, res) => {
     
         db.get("SELECT * FROM `streamlabs_auth`", (err, row) => {
             if (row) {
-                axios.get(`${config.streamlabs.apiBase}/donations?access_token=${row.access_token}`).then((response) => {
-                    res.send(`<pre>${JSON.stringify(response.data.data, undefined, 4)}</pre>`)
-                })
+                access_token = row.access_token;
             } else {
                 let authorize_url = `${config.streamlabs.apiBase}/authorize?`
     
@@ -67,7 +67,7 @@ app.get('/auth', (req, res) => {
 
 app.post('/webhook', function(req, res) {
 
-    if (req.body.resource && req.body.resource.uri) {
+    if (req.body.resource && req.body.resource.uri && getAccessToken()) {
 
         var order_uri = req.body.resource.uri;
 
@@ -85,7 +85,7 @@ app.post('/webhook', function(req, res) {
 
                 console.log(message);
 
-                // trigger Streamlabs POST
+                sendEventStreamlabs(res, order);
 
             } else {
                 console.log('ERROR', error, body);
@@ -101,4 +101,41 @@ app.listen(config.general.port, () => console.log(`Demo app listening on port ${
 
 module.exports = app;
 
+
+function sendEventStreamlabs(res, order) {
+    db.get("SELECT * FROM `streamlabs_auth`", (err, row) => {
+        if (row) {
+            axios.post(`${config.streamlabs.apiBase}/donations?`, {
+                'access_token': row.access_token,
+                'identifier': order.id,
+                'amount': order.order_total,
+                'name': order.user.username,
+                'type': 'donation',
+                'message': order.comment.comment,
+                'currency': 'EUR'
+            }).then((response) => {
+                res.redirect('/');
+            }).catch((error) => {
+                console.log(error);
+            });
+        } else {
+            res.send(`PAS D'ACCESS TOKEN FRR`);
+        }
+    });
+}
+
+function getAccessToken() {
+    if (access_token) {
+        return access_token;
+    } else {
+        db.get("SELECT * FROM `streamlabs_auth`", (err, row) => {
+            if (row) {
+                return (access_token = row.access_token);
+            } else {
+                console.log('ERROR, no stream auth. Request / to generate auth token', err);
+            }
+        })
+        return null;
+    }
+}
 
