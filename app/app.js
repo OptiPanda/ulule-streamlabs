@@ -49,25 +49,21 @@ app.get('/', (req, res) => {
 
 app.get('/auth', (req, res) => {
     let code = req.query.code
-  
-    axios.post(`${STREAMLABS_API_BASE}/token?`, {
-      'grant_type': 'authorization_code',
-      'client_id': config.streamlabs.clientId,
-      'client_secret': config.streamlabs.clientSecret,
-      'redirect_uri': config.streamlabs.redirectUri,
-      'code': code
-    }).then((response) => {
-      db.run("INSERT INTO `streamlabs_auth` (access_token, refresh_token) VALUES (?,?)", [response.data.access_token, response.data.refresh_token], () => {
-        res.redirect('/')
-      })
-    }).catch((error) => {
-      console.log(error)
-    })
-  })
 
-app.get('/ping', function(req, res) {
-    res.status(200).json({ value: 'pong' });
-});
+    axios.post(`${config.streamlabs.apiBase}/token?`, {
+        'grant_type': 'authorization_code',
+        'client_id': config.streamlabs.clientId,
+        'client_secret': config.streamlabs.clientSecret,
+        'redirect_uri': config.streamlabs.redirectUri,
+        'code': code
+    }).then((response) => {
+        db.run("INSERT INTO `streamlabs_auth` (access_token, refresh_token) VALUES (?,?)", [response.data.access_token, response.data.refresh_token], () => {
+        res.redirect('/')
+        })
+    }).catch((error) => {
+        console.log(error)
+    })
+})
 
 app.post('/webhook', function(req, res) {
 
@@ -100,7 +96,6 @@ app.post('/webhook', function(req, res) {
         res.status(400).json({});
     }
 });
-
 
 app.listen(config.general.port, () => console.log(`Demo app listening on port ${config.general.port}!`));
 
